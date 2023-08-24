@@ -2,42 +2,72 @@
 #include <vector>
 #include <fstream>
 #include "COM_Port.h"
+#include <array>
+#include <iterator>
 
-template<typename T>
-void double_array(std::vector<T>& vec) {
-    int old_count = vec.size();
-    vec.resize(2*old_count);
-    std::copy_n(vec.begin(), old_count, vec.begin() + old_count);
+struct Pbm_Header {
+    std::string encoding;
+    uint16_t x;
+    uint16_t y;
+};
+
+// Split 2 byte decimal value into 2 little endian values
+std::array<uint8_t, 2> to_endian(uint16_t inp_number) {
+    std::array<uint8_t, 2> out_arr;
+    out_arr[0] = inp_number & 0xFF; // Low byte
+    out_arr[1] = (inp_number >> 8) & 0xFF; // High byte
+
+    return out_arr;
 }
 
-void skip_img_header(std::ifstream& is) {
-    for (int i=0; i<3; i++) {
-        for (char ch; is.get(ch) && ch != '\n';);
+Pbm_Header parse_pbm_header(std::ifstream& is) {
+    auto skip = [&]{ for (char ch; is.get(ch) && ch != '\n';);};
+
+    // Read encoding
+    Pbm_Header img;
+    is >> img.encoding;
+    skip();
+
+    // skip comments
+    while (true) {
+        char chr;
+        if (is.peek() == '#') {
+            skip();
+        } else {
+            break;
+        }
     }
+
+    // Get Pixel dimensions 
+    is >> img.x >> img.y;
+    skip();
+
+    return img;
 }
 
 int main() {
     COM_Port printer("COM2");
 
-    uint8_t img_type = 0;
-
-    std::vector<uint8_t> arr;
-    switch (img_type) {
-        case 0: 
-                  //GS   v     0     \x00 e     \x00' \x00  \x04' // man.pmb
-            arr = {0x1D, 0x76, 0x30, 0x0, 0x65, 0x00, 0x00, 0x04}; 
-            break;
-        case 1: 
-                  //GS   v     0     \x00 E     \x00' o     \x01' // tulips.pmb
-            arr = {0x1D, 0x76, 0x30, 0x0, 0x45, 0x00, 0x6F, 0x01}; 
-            break;
-    }
-
-    // Read image in
+    // Read image 
     std::ifstream fs("man.pbm", std::ios::binary);
 
-    // Skip first 3 lines (header)
-    skip_img_header(fs);
+    Pbm_Header header = parse_pbm_header(fs);
+
+    if (header.encoding != "P4") {
+        std::cout << "error, incorrect image format. Encode as raw pbm" 
+                  << std::endl;
+        return 0;
+    }
+                            //  GS    v     0     0
+    std::vector<uint8_t> arr = {0x1D, 0x76, 0x30, 0x00};
+    uint16_t width = (header.x + 7) / 8;
+
+    // Calculate xL, xH and yL, yH
+    std::array<uint8_t, 2> x_low_high = to_endian(width);
+    std::array<uint8_t, 2> y_low_high = to_endian(header.y);
+
+    arr.insert(arr.end(), std::begin(x_low_high), std::end(x_low_high));
+    arr.insert(arr.end(), std::begin(y_low_high), std::end(y_low_high));
 
     // Load image into byte array
     std::vector<uint8_t> img(std::istreambuf_iterator<char>(fs), {});
