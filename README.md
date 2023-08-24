@@ -1,4 +1,4 @@
-# Printing images on Epson ESCPOS receipt printers using C++
+# Image printing for epson thermal printers
 
 Reads .pbm images and prints them on thermal epson receipt printers
 
