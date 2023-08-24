@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "COM_Port.h"
+#include "com_wrapper.h"
 
 int main() {
     COM_Port printer("COM2");

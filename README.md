@@ -2,7 +2,7 @@
 
 Reads .pbm images and prints them on thermal epson receipt printers
 
-includes a wrapper for win32 com handling (see COM_Port.h)
+includes a wrapper for win32 com handling (see com_wrapper.h)
 
 ## Usage
 ```

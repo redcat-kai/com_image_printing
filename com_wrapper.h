@@ -1,5 +1,5 @@
-#ifndef COM_PORT_H
-#define COM_PORT_H
+#ifndef COM_WRAPPER_H
+#define COM_WRAPPER_H
 #include <comutil.h>
 #include <winbase.h>
 #include <iostream>
@@ -77,4 +77,4 @@ public:
     }
 };
 
-#endif //COM_PORT_H
+#endif //COM_WRAPPER_H

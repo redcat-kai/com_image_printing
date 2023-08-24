@@ -3,7 +3,7 @@
 #include <array>
 #include <iterator>
 #include <fstream>
-#include "COM_Port.h"
+#include "com_wrapper.h"
 
 struct Pbm_Header {
     std::string encoding;
