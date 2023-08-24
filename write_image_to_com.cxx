@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
-#include <fstream>
-#include "COM_Port.h"
 #include <array>
 #include <iterator>
+#include <fstream>
+#include "COM_Port.h"
 
 struct Pbm_Header {
     std::string encoding;
@@ -45,11 +45,14 @@ Pbm_Header parse_pbm_header(std::ifstream& is) {
     return img;
 }
 
-int main() {
+int main(int argc, char** argv) {
     COM_Port printer("COM2");
 
+    std::string filename;
+    filename = (argc > 0 ? argv[1] : "tulips.pbm");
+
     // Read image 
-    std::ifstream fs("man.pbm", std::ios::binary);
+    std::ifstream fs(filename, std::ios::binary);
 
     Pbm_Header header = parse_pbm_header(fs);
 
